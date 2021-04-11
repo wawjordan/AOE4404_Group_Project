@@ -32,7 +32,7 @@ classdef grid1D < handle
                     (2*this.xi(end)-this.xi(end-1))];
                 this.dx = 0.5*(diff(xplus(1:end-1))+diff(xplus(2:end)));
             end
-            this.xc = 0.5*(this.xi(1:this.i_max-1)+this.xi(2:this.i_max));
+            this.xc = 0.5*(this.xi(1:end-1)+this.xi(2:end));
         end
     end
 end
