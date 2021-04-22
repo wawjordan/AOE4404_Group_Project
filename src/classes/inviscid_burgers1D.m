@@ -45,5 +45,8 @@ classdef inviscid_burgers1D < soln1D
             u3 = 1*(x-(t+1)/2<this.eps);
             uex = (u1+u2).*(t-1<=this.eps) + u3*(t-1>this.eps);
         end
+        function res = residual(this,F)
+           res = F(2:this.grid.i_max+1)-F(1:this.grid.i_max);
+       end
     end
 end
