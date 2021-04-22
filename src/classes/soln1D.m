@@ -34,7 +34,7 @@ classdef soln1D < handle
            this.t0 = p.Results.time_range(1);
            this.tf = p.Results.time_range(2);
            this.U = this.IC(this.grid.xc);
-           this.F = zeros(this.N,1);
+           this.F = zeros(this.N+1,1);
            this.R = zeros(this.N,1);
            this.E = zeros(this.N,1);
            this.Rnorm = 0;
