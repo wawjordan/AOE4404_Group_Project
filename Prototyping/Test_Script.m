@@ -1,12 +1,12 @@
 %% Test Script
 clc; clear; close all;
 
-Ncells = 16;
+Ncells = 201;
 n_ghost = 2;
 xi = linspace(-1,1,Ncells+1);
 inputs = struct();
 inputs.dt = 0.01;
-inputs.time_range = [0,0.5];
+inputs.time_range = [0,0.01];
 inputs.order = 2;
 inputs.kappa = 1;
 inputs.exact_solution_type = 'initial_disc';
