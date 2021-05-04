@@ -1,38 +1,39 @@
 %% Test Script
 clc; clear; close all;
 
-Ncells = 16;
+Ncells = 1024;
 n_ghost = 2;
 xi = linspace(-1,1,Ncells+1);
 inputs = struct();
-inputs.dt = 0.01;
-inputs.time_range = [0,0.5];
-inputs.order = 1;
-inputs.kappa = -1;
-inputs.exact_solution_type = 'initial_disc';
+inputs.dt = 0.01*2^(-6);
+% inputs.time_range = [0,0.5];
+inputs.time_range = [0,1/pi];
+inputs.order = 2;
+inputs.kappa = 0;
+inputs.exact_solution_type = 'initial_sine';
 
-inputs.uLeft = -1;
-inputs.uRight = 1;
+% inputs.uLeft = -1;
+% inputs.uRight = 1;
 soln = inviscid_burgers1D(xi,n_ghost,inputs);
-flux = fluxes('scheme','roe');
+flux = fluxes('scheme','eo');
 limiter = limiters('scheme','van_leer');
 % limiter = limiters('scheme','beta_lim','beta',1);
-RK = RK_Explicit('Method','RK21');
+RK = RK_Explicit('Method','RK41');
 
 N = length(inputs.time_range(1):inputs.dt:inputs.time_range(2));
-
+%%
 hfig=figure(1);
 clf(hfig);
-dim = [7.5 5.5 3.25 2.5];
-set(hfig,'Units','Inches','Position',dim);
-set(hfig,'DefaultAxesFontName','Helvetica');
-set(hfig,'DefaultTextFontName','Helvetica'); 
-set(hfig,'DefaultAxesFontSize',8);
-set(hfig,'DefaultTextFontSize',8);
-set(hfig,'PaperUnits',get(gcf,'Units'));
-pos = get(hfig,'Position');
-set(hfig,'PaperPosition',[0 0 pos(3) pos(4)]);
-set(gca,'Units','Inches');
+% dim = [7.5 5.5 3.25 2.5];
+% set(hfig,'Units','Inches','Position',dim);
+% set(hfig,'DefaultAxesFontName','Helvetica');
+% set(hfig,'DefaultTextFontName','Helvetica'); 
+% set(hfig,'DefaultAxesFontSize',8);
+% set(hfig,'DefaultTextFontSize',8);
+% set(hfig,'PaperUnits',get(gcf,'Units'));
+% pos = get(hfig,'Position');
+% set(hfig,'PaperPosition',[0 0 pos(3) pos(4)]);
+% set(gca,'Units','Inches');
 
 hold on;
 plot(soln.grid.xc,soln.calc_exact(soln.grid.xc,soln.t),'k--')
@@ -45,6 +46,7 @@ plot(soln.grid.xc,soln.calc_exact(soln.grid.xc,soln.t),'k')
 plot(soln.grid.xc(soln.i),soln.U(soln.i),'r')
 title(sprintf('$N_{cells} = %d$, $t = %0.4f$',Ncells,soln.t),'interpreter','latex')
 xlim([soln.grid.xmin,soln.grid.xmax]);
+ylim([0,3])
 % ylim([min(soln.U)-1,max(soln.U)+1])
 xlabel('x','interpreter','latex')
 ylabel('u','rotation',0,'interpreter','latex')
@@ -55,7 +57,7 @@ filename = sprintf('order1_flux-%s_int-%s_N-%d',flux.scheme,RK.Method,Ncells);
 
 % filename = sprintf('flux=%s_int=%s_dt=%0.4f_N=%d',flux.scheme,RK.Method,soln.dt,Ncells);
 disp(filename);
-print(['C:\Users\Will\Desktop\',filename],'-dpng','-r600');
+% print(['C:\Users\Will\Desktop\',filename],'-dpng','-r600');
 function dUdt = burgers(~,U,flux,limiter,soln)
     dUdt = zeros(length(U),1);
     [left,right] = MUSCL_extrap(soln,limiter);
