@@ -22,13 +22,13 @@ for ii = 1:K
 end
 
 inputs = struct();
-inputs.time_range = [0,0.5];
-inputs.order = 1;
-inputs.kappa = -1;
+inputs.time_range = [0,0.9/pi];
+inputs.order = 2;
+inputs.kappa = 0;
 input.beta = 2;
-inputs.exact_solution_type = 'initial_disc';
-inputs.uLeft = -1;
-inputs.uRight = 1;
+inputs.exact_solution_type = 'initial_sine';
+% inputs.uLeft = -1;
+% inputs.uRight = 1;
 
 % labels = {'van Leer limiter','van Albada limiter','minmod limiter',sprintf('$\\beta$-limiter ($\\beta=%0.2f$)',input.beta)};
 labels = {'Engquist-Osher Flux','Roe Flux'};
@@ -115,8 +115,9 @@ ylabel('$\hat{p}\quad\quad$','interpreter','latex','rotation',0)
 legend(labels,'interpreter','latex','location','northeast');
 pbaspect([1.2 1 1])
 
-filename = sprintf('1st-order-flux_int=%s',RK.Method);
+filename = sprintf('sine_test_int=%s',RK.Method);
 % filename = 'flux=EO_limiter=vary_int=Heun';
-filename = ['C:\Users\Will\Desktop\',filename];
-print(filename,'-dpng','-r600');
-crop(strcat(filename,'.png'))
+% filename = ['C:\Users\Will\Desktop\',filename];
+exportgraphics(gcf,[filename,'.png'],'Resolution',600)
+% print(filename,'-dpng','-r600');
+% crop(strcat(filename,'.png'))
