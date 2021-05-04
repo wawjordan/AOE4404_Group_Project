@@ -31,7 +31,8 @@ classdef inviscid_burgers1D < soln1D
             default_order = 1;
             default_kappa = 1;
             default_CFL = 0.5;
-            expected_solutions = {'initial_linear','initial_disc'};
+            expected_solutions = {'initial_linear','initial_disc',...
+                'initial_sine'};
             p = inputParser;
             addParameter(p,'IC',default_IC,@(x)(valid_func(x)));
             addParameter(p,'dt',default_dt,...
@@ -87,6 +88,12 @@ classdef inviscid_burgers1D < soln1D
                    this.U = this.IC(this.grid.xc);
                    this.t0 = 0;
                    this.tf = 1;
+               case 'initial_sine'
+                   this.exact_solution_type = @initial_sine;
+                   this.IC = @(x)this.exact_solution_type(this,x,0);
+                   this.U = this.IC(this.grid.xc);
+                   this.t0 = 0;
+                   this.tf = 0.99/pi;
             end
             this.t = this.t0;
         end
@@ -115,6 +122,27 @@ classdef inviscid_burgers1D < soln1D
             uf3(isnan(uf3)) = uR;
             u_fan = uf1 + uf2 + uf3;
             uex = u_shock*(uL>uR) + u_fan*(uL<uR);
+        end
+        function uex = initial_sine(this,x,t)
+            a = 0.5*(this.grid.xmax-this.grid.xmin);
+            tol = 1e-14;
+            maxiter = 100;
+            init = @(a,x) a - sin(pi*x);
+            f = @(eta,x,t,a) eta + (a-sin(pi*eta))*t-x;
+            df = @(eta,t) 1-pi*t*cos(pi*eta);
+            N = length(x);
+            xmax = max(x);
+            xmin = min(x);
+            x2 = x + init(a,x)*t;
+            xnew = [x(x2>xmax);x(x2<=xmax)];
+            uex = zeros(N,1);
+            for j = 1:N
+                left = xmin-a;
+                right = x(j);
+                [eta,~,~] = newton_safe(@(eta)f(eta,x(j),t,a),...
+                    @(eta)df(eta,t),xnew(j),left,right,tol,maxiter);
+                uex(j) = init(a,eta);
+            end
         end
         function res = residual(this,F)
            res = F(2:this.grid.i_max+1)-F(1:this.grid.i_max);
