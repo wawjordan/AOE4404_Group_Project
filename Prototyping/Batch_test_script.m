@@ -1,18 +1,19 @@
 %% Test Script
 clc; clear; close all;
 
-fluxess = {'eo','roe'};
-% fluxess = {'roe'};
+% fluxess = {'godunov','eo','roe'};
+fluxess = {'roe'};
 limiterss = {'van_leer','van_albada','minmod','beta_lim'};
-RK = RK_Explicit('Method','RK21');
+RK = RK_Explicit('Method','RK41');
+BC = @periodic_bc;
 
 Ncells = 2.^(4:10);
 M = length(Ncells);
-dt = 0.01*2.^(0:-1:-(M-1));
+dt = 0.001*2.^(0:-1:-(M-1));
 
 
-% K = length(limiterss);
-K = length(fluxess);
+K = length(limiterss);
+% K = length(fluxess);
 
 mark = cell(K,1);
 marker = {'o-','^-',''};
@@ -22,32 +23,35 @@ for ii = 1:K
 end
 
 inputs = struct();
-inputs.time_range = [0,0.9/pi];
+inputs.time_range = [0,0.1];
 inputs.order = 2;
-inputs.kappa = 0;
-input.beta = 2;
+inputs.kappa = -1.0;
+input.beta = 1.5;
 inputs.exact_solution_type = 'initial_sine';
 % inputs.uLeft = -1;
 % inputs.uRight = 1;
 
-% labels = {'van Leer limiter','van Albada limiter','minmod limiter',sprintf('$\\beta$-limiter ($\\beta=%0.2f$)',input.beta)};
-labels = {'Engquist-Osher Flux','Roe Flux'};
+labels = {'van Leer limiter','van Albada limiter','minmod limiter',...
+    sprintf('$\\beta$-limiter ($\\beta=%0.2f$)',input.beta)};
+% labels = {'Engquist-Osher Flux','Roe Flux'};
 % labels = {'Euler''s method','Heun''s method','RK41'};
 
 
 E = struct();
 for j = 1:K
 for i = 1:M
-flux = fluxes('scheme',fluxess{j});
-limiter = limiters('scheme',limiterss{1});
-% if strcmp(limiterss{j},'beta_lim')
-% limiter = limiters('scheme',limiterss{j},'beta',input.beta);
-% else
-% limiter = limiters('scheme',limiterss{j});
-% end
+fprintf('Limiter=%s    N = %d     (%d/%d)\n',labels{j},Ncells(i),(j-1)*M+i,M*K);
+flux = fluxes('scheme',fluxess{1});
+% limiter = limiters('scheme',limiterss{1});
+if strcmp(limiterss{j},'beta_lim')
+limiter = limiters('scheme',limiterss{j},'beta',input.beta);
+else
+limiter = limiters('scheme',limiterss{j});
+end
 inputs.dt = dt(i);
-xi = linspace(-1,2,Ncells(i)+1);
-soln = solve_burgers(xi,inputs,flux,limiter,RK);
+xi = linspace(0,1,Ncells(i)+1);
+% xi = linspace(-1,2,Ncells(i)+1);
+soln = solve_burgers(xi,inputs,flux,limiter,RK,BC);
 E(i,j).x = soln.grid.xc(soln.i);
 E(i,j).dx = min(soln.grid.dx);
 E(i,j).error = soln.E;
@@ -55,6 +59,7 @@ E(i,j).norm1 = sum(abs(soln.E))/Ncells(i);
 E(i,j).norm2 = sqrt(sum((soln.E).^2)/Ncells(i));
 E(i,j).norminf = max(abs(soln.E));
 E(i,j).soln = soln.U(soln.i);
+E(i,j).exsoln = soln.Uex;
 end
 end
 %% Plotting
@@ -115,9 +120,13 @@ ylabel('$\hat{p}\quad\quad$','interpreter','latex','rotation',0)
 legend(labels,'interpreter','latex','location','northeast');
 pbaspect([1.2 1 1])
 
+dirname1 = 'C:\Users\Will Jordan\Documents\MATLAB\Grad_School\AOE4404\Project\Results\Data\';
+dirname2 = 'C:\Users\Will Jordan\Documents\MATLAB\Grad_School\AOE4404\Project\Results\Figures\';
+% filename = sprintf('sine_test_int=%s',RK.Method);
 filename = sprintf('sine_test_int=%s',RK.Method);
 % filename = 'flux=EO_limiter=vary_int=Heun';
-% filename = ['C:\Users\Will\Desktop\',filename];
-exportgraphics(gcf,[filename,'.png'],'Resolution',600)
+filename = [dirname1,filename];
+save([dirname1,filename],E);
+exportgraphics(gcf,[dirname2,filename,'.png'],'Resolution',600)
 % print(filename,'-dpng','-r600');
 % crop(strcat(filename,'.png'))
