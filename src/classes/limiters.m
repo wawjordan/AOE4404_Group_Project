@@ -1,12 +1,12 @@
-classdef limiters
+classdef limiters < handle
     properties
         scheme
         limiterfun
         beta
+        frozen = false
     end
-    properties (Dependent = true, SetAccess = private)
-        frozen
-        unfrozen
+    properties (Dependent = true)%, SetAccess = private)
+        limiter
     end
     methods
         function this = limiters(varargin)
@@ -33,6 +33,14 @@ classdef limiters
                 case 'beta_lim'
                     this.limiterfun = @beta_limiter;
             end
+        end
+        function set.limiter(this,r)
+            if ~this.frozen
+                this.limiter = this.limiterfun(this,r);
+            end
+        end
+        function set.frozen(this,val)
+           this.frozen = val;
         end
         function psi = limit(this,r)
           psi = this.limiterfun(this,r);
