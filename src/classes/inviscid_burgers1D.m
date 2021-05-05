@@ -8,6 +8,7 @@ classdef inviscid_burgers1D < soln1D
       kappa_MUSCL {mustBeNumeric}
       epsilon_MUSCL {mustBeNumeric}
       uLeft, uRight, L {mustBeNumeric}
+      Uex
     end
     properties (Dependent = true, SetAccess = private)
         
@@ -79,21 +80,24 @@ classdef inviscid_burgers1D < soln1D
                case 'initial_linear'
                    this.exact_solution_type = @initial_linear;
                    this.IC = @(x)this.exact_solution_type(this,x,0);
-                   this.U = this.IC(this.grid.xc);
+                   this.Uex = this.IC(this.grid.xc);
+                   this.U = this.Uex;
                    this.t0 = 0;
                    this.tf = 1;
                case 'initial_disc'
                    this.exact_solution_type = @initial_disc;
                    this.IC = @(x)this.exact_solution_type(this,x,0);
-                   this.U = this.IC(this.grid.xc);
+                   this.Uex = this.IC(this.grid.xc);
+                   this.U = this.Uex;
                    this.t0 = 0;
                    this.tf = 1;
                case 'initial_sine'
-                   this.exact_solution_type = @initial_sine;
+                   this.exact_solution_type = @initial_sine1;
                    this.IC = @(x)this.exact_solution_type(this,x,0);
-                   this.U = this.IC(this.grid.xc);
+                   this.Uex = this.IC(this.grid.xc);
+                   this.U = this.Uex;
                    this.t0 = 0;
-                   this.tf = 0.99/pi;
+                   this.tf = 0.1;
             end
             this.t = this.t0;
         end
@@ -123,25 +127,32 @@ classdef inviscid_burgers1D < soln1D
             u_fan = uf1 + uf2 + uf3;
             uex = u_shock*(uL>uR) + u_fan*(uL<uR);
         end
-        function uex = initial_sine(this,x,t)
-            a = 0.5*(this.grid.xmax-this.grid.xmin);
-            tol = 1e-14;
-            maxiter = 100;
-            init = @(a,x) a - sin(pi*x);
-            f = @(eta,x,t,a) eta + (a-sin(pi*eta))*t-x;
-            df = @(eta,t) 1-pi*t*cos(pi*eta);
-            N = length(x);
-            xmax = max(x);
-            xmin = min(x);
-            x2 = x + init(a,x)*t;
-            xnew = [x(x2>xmax);x(x2<=xmax)];
-            uex = zeros(N,1);
-            for j = 1:N
-                left = xmin-a;
-                right = x(j);
-                [eta,~,~] = newton_safe(@(eta)f(eta,x(j),t,a),...
-                    @(eta)df(eta,t),xnew(j),left,right,tol,maxiter);
-                uex(j) = init(a,eta);
+        function uex = initial_sine1(~,x,t)
+            options = optimoptions('fsolve','Display','none',...
+              'SpecifyObjectiveGradient',true,'OptimalityTolerance',1e-12);
+            if t>0
+                u0 = x/t.*(x<0.5) + (x-1)/t.*(0.5<x);
+                uex = fsolve(@(u)fun(x,u,t),u0,options);
+            else
+                uex = sin(2*pi*x);
+            end
+            function [F,J] = fun(x,u,t)
+                F = u - sin(2*pi*(x-u*t));
+                J = spdiags(1+2*pi*t*cos(2*pi*(x-u*t)),0,length(x),length(x));
+            end
+        end
+        function uex = initial_sine2(~,x,t)
+            if t>0
+                uex = zeros(length(x),1);
+                for j = 1:length(x)
+                u0 = x(j)/t.*(x(j)<0.5) + (x(j)-1)/t.*(0.5<x(j));
+                uex(j) = fzero(@(u)fun(x(j),u,t),u0);
+                end
+            else
+                uex = sin(2*pi*x);
+            end
+            function F = fun(x,u,t)
+                F = u - sin(2*pi*(x-u*t));
             end
         end
         function res = residual(this,F)
