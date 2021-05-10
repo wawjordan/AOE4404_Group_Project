@@ -3,6 +3,7 @@ out = struct();
 soln = inviscid_burgers1D(xi,2,inputs);
 N = length(inputs.time_range(1):inputs.dt:inputs.time_range(2));
 out.t = nan(N,1);
+out.tplot = nan(N,1);
 out.norm1 = nan(N,1);
 out.norm2 = nan(N,1);
 out.norminf = nan(N,1);
@@ -12,6 +13,7 @@ out.E = cell(N,1);
 
 
 out.t(1) = soln.t;
+out.tplot(1) = soln.t;
 out.norm1(1) = 0;
 out.norm2(1) = 0;
 out.norminf(1) = 0;
@@ -26,18 +28,32 @@ for j =1:N-1
     soln.Uex = soln.calc_exact(soln.grid.xc,soln.t);
     soln.U = RK.eval(@(t,u)burgers(t,u,flux,limiter,soln,bc),soln.U,soln.t,soln.dt);
     soln.E = soln.U(soln.i)-soln.Uex(soln.i);
+%     if mod(j,out_interval)==0
+%         out.t(j+1) = soln.t;
+%         out.norm1(j+1) = sum(abs(soln.E))/(length(xi)-1);
+%         out.norm2(j+1) = sqrt(sum((soln.E).^2)/(length(xi)-1));
+%         out.norminf(j+1) = max(abs(soln.E));
+%     end
+%     out.tplot(j+1) = soln.t;
+%     out.U{j+1} = soln.U(soln.i);
+%     out.Uex{j+1} = soln.Uex(soln.i);
+%     out.E{j+1} = soln.E;
+    
     if mod(j,out_interval)==0
         out.t(j+1) = soln.t;
         out.norm1(j+1) = sum(abs(soln.E))/(length(xi)-1);
         out.norm2(j+1) = sqrt(sum((soln.E).^2)/(length(xi)-1));
         out.norminf(j+1) = max(abs(soln.E));
+        out.tplot(j+1) = soln.t;
         out.U{j+1} = soln.U(soln.i);
         out.Uex{j+1} = soln.Uex(soln.i);
         out.E{j+1} = soln.E;
     end
+    
 end
 
 out.t = out.t(~isnan(out.t));
+out.tplot = out.tplot(~isnan(out.tplot));
 out.norm1 = out.norm1(~isnan(out.norm1));
 out.norm2 = out.norm2(~isnan(out.norm2));
 out.norminf = out.norminf(~isnan(out.norminf));
