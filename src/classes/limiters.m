@@ -1,6 +1,7 @@
 classdef limiters < handle
     properties
         scheme
+        label
         limiterfun
         beta
         frozen = false
@@ -10,10 +11,10 @@ classdef limiters < handle
     end
     methods
         function this = limiters(varargin)
-            default_scheme = 'minmod';
+            default_scheme = 'none';
             default_beta = 2.0;
             expected_names = ...
-                {'van_leer','van_albada','minmod','beta_lim'};
+                {'none','van_leer','van_albada','minmod','beta_lim'};
             p = inputParser;
             addOptional(p,'scheme',default_scheme,...
                 @(x) any(validatestring(x,expected_names)));
@@ -24,14 +25,22 @@ classdef limiters < handle
             this.scheme = p.Results.scheme;
             this.beta = p.Results.beta;
             switch(p.Results.scheme)
+                case 'none'
+                    this.limiterfun = @no_limiter;
+                    this.label = 'no limiter';
                 case 'van_leer'
                     this.limiterfun = @van_leer_limiter;
+                    this.label = 'van Leer limiter';
                 case 'van_albada'
                     this.limiterfun = @van_albada_limiter;
+                    this.label = 'van Albada limiter';
                 case 'minmod'
                     this.limiterfun = @minmod_limiter;
+                    this.label = 'minmod limiter';
                 case 'beta_lim'
                     this.limiterfun = @beta_limiter;
+                    this.label = ...
+                    sprintf('$\\beta$-limiter $(\\beta=%0.1f)$',this.beta);
             end
         end
         function set.limiter(this,r)
@@ -44,6 +53,9 @@ classdef limiters < handle
         end
         function psi = limit(this,r)
           psi = this.limiterfun(this,r);
+        end
+        function psi = no_limiter(~,r)
+            psi = ones(size(r,1),size(r,2));
         end
         function psi = van_leer_limiter(~,r)
             psi = (r + abs(r))./(1+r);
