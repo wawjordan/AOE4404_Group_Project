@@ -26,18 +26,9 @@ out.x = soln.grid.xc(soln.i);
 for j =1:N-1
     soln.t = soln.t + soln.dt;
     soln.Uex = soln.calc_exact(soln.grid.xc,soln.t);
-    soln.U = RK.eval(@(t,u)burgers(t,u,flux,limiter,soln,bc),soln.U,soln.t,soln.dt);
+    soln.U = RK.eval(@(t,u)burgers(t,u,flux,limiter,soln,bc),...
+        soln.U,soln.t,soln.dt);
     soln.E = soln.U(soln.i)-soln.Uex(soln.i);
-%     if mod(j,out_interval)==0
-%         out.t(j+1) = soln.t;
-%         out.norm1(j+1) = sum(abs(soln.E))/(length(xi)-1);
-%         out.norm2(j+1) = sqrt(sum((soln.E).^2)/(length(xi)-1));
-%         out.norminf(j+1) = max(abs(soln.E));
-%     end
-%     out.tplot(j+1) = soln.t;
-%     out.U{j+1} = soln.U(soln.i);
-%     out.Uex{j+1} = soln.Uex(soln.i);
-%     out.E{j+1} = soln.E;
     
     if mod(j,out_interval)==0
         out.t(j+1) = soln.t;
