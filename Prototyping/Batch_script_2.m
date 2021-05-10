@@ -1,6 +1,6 @@
 %% Test Script
 clc; clear; close all;
-fluxess = {'roe'};
+fluxess = {'godunov'};
 limiterss = {'van_leer','van_albada','minmod','beta_lim'};
 RK = RK_Explicit('Method','Euler');
 BC = @periodic_bc;
@@ -33,7 +33,6 @@ dirname1 = ['C:\Users\Will Jordan\Documents\MATLAB\Grad_School\AOE4404',...
     '\Project\Results\Data\'];
 dirname2 = ['C:\Users\Will Jordan\Documents\MATLAB\Grad_School\AOE4404',...
     '\Project\Results\Figures\'];
-
 
 E = struct();
 intervals = (inputs.time_range(2)-inputs.time_range(1))./dt;
@@ -75,14 +74,14 @@ end
 
 save([dirname1,filename,'.mat'],'E');
 
-hfig1 = ooa_plot(1,E,K,M,Ncells,labels,1);
-exportgraphics(gcf,[dirname2,filename,'N1','.png'],'Resolution',600)
-
-hfig2 = ooa_plot(2,E,K,M,Ncells,labels,2);
-exportgraphics(gcf,[dirname2,filename,'N2','.png'],'Resolution',600)
-
-hfig3 = ooa_plot(3,E,K,M,Ncells,labels,3);
-exportgraphics(gcf,[dirname2,filename,'N3','.png'],'Resolution',600)
+% hfig1 = ooa_plot(1,E,K,M,Ncells,labels,1);
+% exportgraphics(gcf,[dirname2,filename,'N1','.png'],'Resolution',600)
+% 
+% hfig2 = ooa_plot(2,E,K,M,Ncells,labels,2);
+% exportgraphics(gcf,[dirname2,filename,'N2','.png'],'Resolution',600)
+% 
+% hfig3 = ooa_plot(3,E,K,M,Ncells,labels,3);
+% exportgraphics(gcf,[dirname2,filename,'N3','.png'],'Resolution',600)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
