@@ -1,12 +1,12 @@
 %% Test Script
 clc; clear; close all;
 
-Ncells = 101;
+Ncells = 17;
 n_ghost = 2;
 xi = linspace(0,1,Ncells+1);
 inputs = struct();
 inputs.dt = 0.001;
-inputs.time_range = [0,0.5];
+inputs.time_range = [0,0.1];
 inputs.order = 2;
 inputs.kappa = 1;
 inputs.exact_solution_type = 'initial_sine';
@@ -32,18 +32,19 @@ for i =1:N
 %     soln.U(soln.i) = soln.U(soln.i)-(1./soln.grid.dx(soln.i)).*soln.R*soln.dt;
     soln.U = RK.eval(@(t,u)burgers(t,u,flux,limiter,soln,BC),soln.U,soln.t,soln.dt);
     soln.E = soln.U(soln.i)-soln.calc_exact(soln.grid.xc(soln.i),soln.t);
-    hold on
+%     hold on
 %     plot(soln.grid.xc,soln.calc_exact(soln.grid.xc,soln.t),'k')
 %     plot(soln.grid.xc(soln.i),soln.U(soln.i),'r')
-    plot(soln.grid.xc(soln.i),soln.E,'r')
-    drawnow
-    hold off
+%     plot(soln.grid.xc(soln.i),soln.E,'r')
+%     drawnow
+%     hold off
 end
-% hold on;
+%%
+hold on;
 % plot(soln.grid.xc(soln.i),soln.U(soln.i),'r')
 % plot(soln.grid.xc,soln.calc_exact(soln.grid.xc,soln.t),'k')
 % xlim([soln.grid.xmin,soln.grid.xmax]);
-% hold off;
+hold off;
 % plot(soln.E)
 
 function dUdt = burgers(~,U,flux,limiter,soln,BC)
