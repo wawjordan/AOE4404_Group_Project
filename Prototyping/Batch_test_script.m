@@ -3,7 +3,7 @@ clc; clear; close all;
 
 % fluxess = {'godunov','eo','roe'};
 fluxess = {'roe'};
-limiterss = {'van_leer','van_albada','minmod','beta_lim'};
+limiterss = {'none','van_leer','van_albada','minmod','beta_lim'};
 RK = RK_Explicit('Method','Euler');
 BC = @periodic_bc;
 
@@ -23,16 +23,18 @@ for ii = 1:K
 end
 
 inputs = struct();
-inputs.time_range = [0,0.5];
+inputs.time_range = [0,0.1];
 inputs.order = 2;
-inputs.kappa = 1;
+inputs.kappa = 0.5;
 input.beta = 1.5;
 inputs.exact_solution_type = 'initial_sine';
 % inputs.uLeft = -1;
 % inputs.uRight = 1;
 
-labels = {'van Leer limiter','van Albada limiter','minmod limiter',...
-    sprintf('$\\beta$-limiter ($\\beta=%0.2f$)',input.beta)};
+labels = cell(length(limiterss),1);
+
+% labels = {'van Leer limiter','van Albada limiter','minmod limiter',...
+%     sprintf('$\\beta$-limiter ($\\beta=%0.2f$)',input.beta)};
 % labels = {'Engquist-Osher Flux','Roe Flux'};
 % labels = {'Euler''s method','Heun''s method','RK41'};
 
@@ -71,6 +73,7 @@ E(i,j).norminf = out.norminf;
 E(i,j).soln = out.U;
 E(i,j).exsoln = out.Uex;
 end
+labels{j} = limiter.label;
 end
 %% Plotting
 hfig=figure(1);
